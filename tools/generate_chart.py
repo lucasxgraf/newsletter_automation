@@ -1,101 +1,130 @@
 #!/usr/bin/env python3
-"""Generate a horizontal bar chart from stats in .tmp/newsletter_content.json. Saves to .tmp/chart.png."""
+"""Generate a GADS-branded data chart. Saves to .tmp/chart.png."""
 
 import json
+import re
 import sys
 from pathlib import Path
 
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-from matplotlib import font_manager
 
-# GADS Brand Colors
-BG_COLOR = "#2E1B0E"       # Espresso
-BAR_COLOR = "#3D6B78"      # Slate
-BAR_HOVER = "#9B7B50"      # Bronze
-TEXT_COLOR = "#F5F0EB"     # Ivory
-MUTED_COLOR = "#E8DDD0"    # Ivory Soft
-GRID_COLOR = "#4A3020"     # Espresso Mid
+BASE = Path(__file__).parent.parent
 
-WIDTH, HEIGHT = 6.5, 4
-
-
-def draw_placeholder(out_path: Path, topic: str):
-    fig, ax = plt.subplots(figsize=(WIDTH, HEIGHT), facecolor=BG_COLOR)
-    ax.set_facecolor(BG_COLOR)
-    ax.text(0.5, 0.5, f"No numerical data\nfound for this topic",
-            ha="center", va="center", color=MUTED_COLOR,
-            fontsize=13, fontfamily="sans-serif", transform=ax.transAxes)
-    ax.axis("off")
-    fig.tight_layout()
-    fig.savefig(out_path, dpi=150, facecolor=BG_COLOR)
-    plt.close(fig)
+# GADS Brand Palette — official guidelines
+ESPRESSO    = "#1A1210"
+BRONZE      = "#8B7056"
+IVORY_SOFT  = "#DEC9AF"
+IVORY       = "#FAF6EF"
+SILVER      = "#9A9490"
+BAR_TRACK   = "#2C1C18"
 
 
-def draw_chart(stats: list[dict], topic: str, out_path: Path):
-    labels = [s["label"] for s in stats]
-    values = [float(s["value"]) for s in stats]
-    max_val = max(values)
-
-    fig, ax = plt.subplots(figsize=(WIDTH, HEIGHT), facecolor=BG_COLOR)
-    ax.set_facecolor(BG_COLOR)
-
-    bars = ax.barh(labels, values, color=BAR_COLOR, height=0.45, zorder=2)
-
-    for bar, val in zip(bars, values):
-        ax.text(
-            bar.get_width() + max_val * 0.015,
-            bar.get_y() + bar.get_height() / 2,
-            f"{val:g}",
-            va="center", ha="left", color=TEXT_COLOR,
-            fontsize=11, fontweight="bold", fontfamily="sans-serif",
-        )
-
-    ax.spines[:].set_visible(False)
-    ax.xaxis.set_visible(False)
-    ax.tick_params(colors=MUTED_COLOR, labelsize=10)
-    for label in ax.get_yticklabels():
-        label.set_color(MUTED_COLOR)
-        label.set_fontfamily("sans-serif")
-
-    ax.set_title(f"Key Numbers · {topic}", color=TEXT_COLOR,
-                 fontsize=12, fontweight="bold", fontfamily="sans-serif", pad=14)
-
-    ax.grid(axis="x", color=GRID_COLOR, zorder=1, linewidth=0.8)
-    ax.set_axisbelow(True)
-    ax.set_xlim(0, max_val * 1.22)
-
-    # GADS footer line
-    fig.text(0.92, 0.02, "GADS", ha="right", fontsize=9,
-             color="#9B7B50", fontfamily="sans-serif", fontstyle="normal")
-
-    fig.tight_layout(rect=[0, 0.04, 1, 1])
-    fig.savefig(out_path, dpi=150, facecolor=BG_COLOR, bbox_inches="tight")
-    plt.close(fig)
+def parse_value(raw) -> float:
+    s = str(raw).replace(",", "").replace(" ", "").replace(" ", "")
+    m = re.search(r"\d+\.?\d*", s)
+    return float(m.group()) if m else 0.0
 
 
 def main():
-    tmp = Path(__file__).parent.parent / ".tmp"
+    tmp = BASE / ".tmp"
     content_path = tmp / "newsletter_content.json"
 
     if not content_path.exists():
-        print("Error: .tmp/newsletter_content.json not found. Run write_newsletter.py first.", file=sys.stderr)
+        print("Error: newsletter_content.json not found.", file=sys.stderr)
         sys.exit(1)
 
-    content = json.loads(content_path.read_text())
-    stats = content.get("stats", [])
-    topic = content.get("topic", "Newsletter")
+    content  = json.loads(content_path.read_text())
+    stats    = content.get("stats", [])
     out_path = tmp / "chart.png"
 
     if len(stats) < 2:
-        print("Not enough stats — generating placeholder.", file=sys.stderr)
-        draw_placeholder(out_path, topic)
-    else:
-        draw_chart(stats, topic, out_path)
-        print(f"Chart with {len(stats)} bars generated.", file=sys.stderr)
+        fig, ax = plt.subplots(figsize=(12, 4.5), facecolor=ESPRESSO)
+        ax.set_facecolor(ESPRESSO)
+        ax.text(0.5, 0.5, "No statistical data available",
+                ha="center", va="center", color=SILVER, fontsize=16,
+                transform=ax.transAxes, fontfamily="sans-serif")
+        ax.axis("off")
+        fig.savefig(out_path, dpi=150, bbox_inches="tight",
+                    facecolor=ESPRESSO, pad_inches=0.25)
+        plt.close(fig)
+        print(json.dumps({"path": str(out_path)}))
+        return
 
-    print(f"Saved → {out_path}", file=sys.stderr)
+    labels   = [s["label"]              for s in stats]
+    raw_strs = [str(s["value"])          for s in stats]
+    values   = [parse_value(s["value"])  for s in stats]
+
+    n      = len(labels)
+    fig_h  = 3.6 + n * 1.05
+    fig, ax = plt.subplots(figsize=(12, fig_h), facecolor=ESPRESSO)
+    ax.set_facecolor(ESPRESSO)
+
+    max_val = max(values) if max(values) > 0 else 1.0
+    x_max   = max_val * 1.32
+
+    # Dark track behind each bar
+    for i in range(n):
+        ax.barh(i, x_max * 0.97, height=0.50,
+                color=BAR_TRACK, zorder=1, align="center")
+
+    # Bronze bars
+    bars = ax.barh(range(n), values, height=0.50,
+                   color=BRONZE, zorder=2, align="center")
+
+    # Bright leading-edge accent
+    accent_w = max_val * 0.006
+    for i in range(n):
+        ax.barh(i, accent_w, height=0.50,
+                color="#B09070", zorder=3, align="center")
+
+    # Value labels right of each bar
+    for i, (bar, raw) in enumerate(zip(bars, raw_strs)):
+        w = bar.get_width()
+        ax.text(w + x_max * 0.022, i, raw,
+                va="center", ha="left",
+                color=IVORY, fontsize=13, fontweight="bold",
+                fontfamily="sans-serif")
+
+    # Y-axis category labels
+    ax.set_yticks(range(n))
+    ax.set_yticklabels(labels, color=IVORY_SOFT, fontsize=12,
+                       fontfamily="sans-serif")
+    ax.tick_params(axis="y", length=0, pad=14)
+
+    ax.set_xlim(0, x_max)
+    ax.xaxis.set_visible(False)
+    for spine in ax.spines.values():
+        spine.set_visible(False)
+    ax.set_ylim(-0.65, n - 0.35)
+
+    # Header: eyebrow + title + accent rule
+    fig.text(0.055, 0.97, "BY THE NUMBERS",
+             color=BRONZE, fontsize=9, fontweight="bold",
+             va="top", transform=fig.transFigure,
+             fontfamily="sans-serif")
+    fig.text(0.055, 0.90, "Key Statistics",
+             color=IVORY, fontsize=20, fontweight="bold",
+             va="top", transform=fig.transFigure,
+             fontfamily="sans-serif")
+    fig.add_artist(plt.Line2D(
+        [0.055, 0.30], [0.83, 0.83],
+        transform=fig.transFigure, color=BRONZE, linewidth=1.5,
+    ))
+
+    # "GADS" brand mark — top-right, large Ivory text
+    fig.text(0.945, 0.96, "GADS",
+             color=IVORY, fontsize=26, fontweight="bold",
+             ha="right", va="top", transform=fig.transFigure,
+             fontfamily="sans-serif")
+
+    plt.subplots_adjust(left=0.30, right=0.84, top=0.80, bottom=0.05)
+    fig.savefig(out_path, dpi=150, bbox_inches="tight",
+                facecolor=ESPRESSO, pad_inches=0.28)
+    plt.close(fig)
+
+    print(f"Chart saved → {out_path}", file=sys.stderr)
     print(json.dumps({"path": str(out_path)}))
 
 

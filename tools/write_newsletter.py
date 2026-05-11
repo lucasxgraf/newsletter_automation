@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Use Groq LLM to write newsletter content and extract structured data. Saves to .tmp/newsletter_content.json."""
 
+import argparse
 import json
 import os
 import re
@@ -35,8 +36,8 @@ Return a single JSON object with exactly these fields:
   ],
   "key_takeaways": ["Takeaway 1", "Takeaway 2", "Takeaway 3", "Takeaway 4", "Takeaway 5"],
   "stats": [
-    {{"label": "Stat label", "value": 42}},
-    {{"label": "Another stat", "value": 78}}
+    {{"label": "Stat label (%)", "value": 42}},
+    {{"label": "Another stat (%)", "value": 78}}
   ],
   "facts": [
     "Interesting fact 1 from the research",
@@ -48,7 +49,7 @@ Return a single JSON object with exactly these fields:
 }}
 
 Rules:
-- "stats" must contain 2-4 items where "value" is always a plain number (no units, no % sign — put units in the label instead). Only include stats if real numerical data appears in the research; otherwise use an empty array.
+- "stats" must contain 2-4 items. All values must be on a comparable scale (0-100) so a bar chart looks meaningful — prefer percentage/ratio values. Put units in the label (e.g. "AI adoption rate (%)"). "value" is always a plain number (no %, no text). Only include stats backed by real data in the research; otherwise use an empty array.
 - "facts" must contain exactly 5 short, punchy facts drawn from the research.
 - Return ONLY the JSON object. No markdown fences, no explanations."""
 
@@ -70,11 +71,15 @@ def extract_json(raw: str) -> dict:
 
 
 def main():
-    if len(sys.argv) < 2:
-        print("Usage: python write_newsletter.py \"<topic>\"", file=sys.stderr)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("topic", nargs="?", help="Newsletter topic")
+    parser.add_argument("--topic", dest="topic_flag", help="Newsletter topic (flag form)")
+    args = parser.parse_args()
+    topic = args.topic_flag or args.topic
+    if not topic:
+        print("Usage: python write_newsletter.py \"<topic>\"  OR  --topic \"<topic>\"",
+              file=sys.stderr)
         sys.exit(1)
-
-    topic = sys.argv[1]
     tmp = Path(__file__).parent.parent / ".tmp"
     scraped_path = tmp / "scraped_content.json"
 

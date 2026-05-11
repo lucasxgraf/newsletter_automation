@@ -1,25 +1,23 @@
 #!/usr/bin/env python3
-"""Generate a visual fact card from facts in .tmp/newsletter_content.json. Saves to .tmp/factcard.png."""
+"""Generate a GADS-branded visual fact card. Saves to .tmp/factcard.png."""
 
 import json
 import sys
-import textwrap
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
 
-IMG_W, IMG_H = 1200, 675   # 16:9 widescreen
+IMG_W, IMG_H = 1200, 675
+HEADER_H     = 104
+FOOTER_H     = 50
 
-# GADS Brand Colors
-BG_COLOR        = (46, 27, 14)      # Espresso #2E1B0E
-HEADER_BG       = (74, 48, 32)      # Espresso Mid #4A3020
-ACCENT_COLOR    = (61, 107, 120)    # Slate #3D6B78
-BRONZE_COLOR    = (155, 123, 80)    # Bronze #9B7B50
-TEXT_COLOR      = (245, 240, 235)   # Ivory #F5F0EB
-MUTED_COLOR     = (232, 221, 208)   # Ivory Soft #E8DDD0
-DIVIDER_COLOR   = (74, 48, 32)      # Espresso Mid
-
-BRAND_ASSETS = Path(__file__).parent.parent / "brand_assets"
+# GADS Brand Palette — official guidelines
+ESPRESSO    = (26, 18, 16)       # #1A1210
+PANEL_BG    = (33, 22, 20)       # #211614 — lifted Espresso for panels
+BRONZE      = (139, 112, 86)     # #8B7056
+IVORY_SOFT  = (222, 201, 175)    # #DEC9AF
+IVORY       = (250, 246, 239)    # #FAF6EF
+DIVIDER     = (44, 28, 24)       # Dark bronze-tinted row separator
 
 
 def load_font(size: int, bold: bool = False) -> ImageFont.ImageFont:
@@ -36,106 +34,120 @@ def load_font(size: int, bold: bool = False) -> ImageFont.ImageFont:
     return ImageFont.load_default()
 
 
-def paste_logo(img: Image.Image, draw: ImageDraw.ImageDraw):
-    logo_path = BRAND_ASSETS / "icon_GADS.png"
-    if not logo_path.exists():
-        return
-    icon = Image.open(logo_path).convert("RGBA")
-    # Resize icon to fit header area
-    icon_h = 48
-    ratio = icon_h / icon.size[1]
-    icon_w = int(icon.size[0] * ratio)
-    icon = icon.resize((icon_w, icon_h), Image.LANCZOS)
-
-    # Place in top-right with padding
-    x = IMG_W - icon_w - 40
-    y = (90 - icon_h) // 2
-    # Convert icon to RGB on Espresso-Mid background for anti-aliasing
-    bg_patch = Image.new("RGB", (icon_w, icon_h), HEADER_BG)
-    if icon.mode == "RGBA":
-        bg_patch.paste(icon, (0, 0), mask=icon.split()[3])
-    else:
-        bg_patch.paste(icon, (0, 0))
-    img.paste(bg_patch, (x, y))
+def wrap_text(text: str, font, draw: ImageDraw.ImageDraw, max_width: int) -> list[str]:
+    words   = text.split()
+    lines   = []
+    current = ""
+    for word in words:
+        test = (current + " " + word).strip()
+        w    = draw.textbbox((0, 0), test, font=font)[2]
+        if w > max_width and current:
+            lines.append(current)
+            current = word
+        else:
+            current = test
+    if current:
+        lines.append(current)
+    return lines
 
 
 def draw_factcard(facts: list[str], topic: str, out_path: Path):
-    img = Image.new("RGB", (IMG_W, IMG_H), BG_COLOR)
+    img  = Image.new("RGB", (IMG_W, IMG_H), ESPRESSO)
     draw = ImageDraw.Draw(img)
 
-    # Header band
-    draw.rectangle([(0, 0), (IMG_W, 90)], fill=HEADER_BG)
-    draw.rectangle([(0, 88), (IMG_W, 93)], fill=ACCENT_COLOR)
+    # ── Fonts ─────────────────────────────────────────────────────────────────
+    f_eyebrow  = load_font(11)
+    f_header   = load_font(26, bold=True)
+    f_gads_hdr = load_font(34, bold=True)   # "GADS" top-right brand mark
+    f_number   = load_font(46, bold=True)
+    f_fact     = load_font(19)
+    f_fact_sm  = load_font(17)
+    f_footer   = load_font(16, bold=True)   # "GADS" footer brand mark
 
-    # Fonts
-    font_headline = load_font(30, bold=True)
-    font_label    = load_font(12)
-    font_fact     = load_font(19)
-    font_number   = load_font(28, bold=True)
-    font_footer   = load_font(13)
-    font_tag      = load_font(11)
+    # ── Header panel ──────────────────────────────────────────────────────────
+    draw.rectangle([(0, 0), (IMG_W, HEADER_H)], fill=PANEL_BG)
+    draw.rectangle([(0, HEADER_H - 3), (IMG_W, HEADER_H)], fill=BRONZE)
 
-    # Header: label + title
-    draw.text((40, 16), "GADS NEWSLETTER", font=font_tag, fill=BRONZE_COLOR)
-    draw.text((40, 36), f"5 Key Facts: {topic}", font=font_headline, fill=TEXT_COLOR)
+    draw.text((48, 20), "GADS NEWSLETTER", font=f_eyebrow, fill=BRONZE)
+    topic_display = topic if len(topic) <= 52 else topic[:50] + "…"
+    draw.text((48, 42), f"Quick Facts: {topic_display}", font=f_header, fill=IVORY)
 
-    # Logo icon top-right
-    paste_logo(img, draw)
+    # "GADS" brand mark — top-right, large Ivory
+    gads_hdr = "GADS"
+    ghbbox = draw.textbbox((0, 0), gads_hdr, font=f_gads_hdr)
+    ghw    = ghbbox[2] - ghbbox[0]
+    ghh    = ghbbox[3] - ghbbox[1]
+    draw.text((IMG_W - ghw - 40, (HEADER_H - ghh) // 2),
+              gads_hdr, font=f_gads_hdr, fill=IVORY)
 
-    # Fact rows
-    usable_h = IMG_H - 90 - 44  # minus header and footer
-    row_h = usable_h // 5
+    # ── Fact rows ─────────────────────────────────────────────────────────────
+    content_top    = HEADER_H
+    content_bottom = IMG_H - FOOTER_H
+    row_h          = (content_bottom - content_top) // 5
+
+    PAD_X    = 48
+    NUM_W    = 78
+    SEP_GAP  = 22
+    text_x   = PAD_X + NUM_W + SEP_GAP * 2
+    text_max = IMG_W - text_x - PAD_X
 
     for i, fact in enumerate(facts[:5]):
-        y = 93 + i * row_h
+        y = content_top + i * row_h
 
-        # Subtle row alternation
-        if i % 2 == 0:
-            draw.rectangle([(0, y), (IMG_W, y + row_h)], fill=(52, 31, 16))
-
-        # Row separator
         if i > 0:
-            draw.line([(40, y), (IMG_W - 40, y)], fill=DIVIDER_COLOR, width=1)
+            draw.line([(PAD_X, y), (IMG_W - PAD_X, y)], fill=DIVIDER, width=1)
 
-        # Number badge
-        badge_y = y + (row_h - 36) // 2
-        draw.rounded_rectangle([(40, badge_y), (76, badge_y + 36)], radius=6, fill=ACCENT_COLOR)
-        num_text = str(i + 1)
-        bbox = draw.textbbox((0, 0), num_text, font=font_number)
-        nw, nh = bbox[2] - bbox[0], bbox[3] - bbox[1]
-        draw.text((40 + (36 - nw) // 2, badge_y + (36 - nh) // 2 - 2), num_text, font=font_number, fill=TEXT_COLOR)
+        # Large Bronze number
+        num_str = f"{i + 1:02d}"
+        nbbox   = draw.textbbox((0, 0), num_str, font=f_number)
+        nw, nh  = nbbox[2] - nbbox[0], nbbox[3] - nbbox[1]
+        num_x   = PAD_X + (NUM_W - nw) // 2
+        num_y   = y + (row_h - nh) // 2 - 3
+        draw.text((num_x, num_y), num_str, font=f_number, fill=BRONZE)
+
+        # Thin vertical separator
+        sep_x = PAD_X + NUM_W + SEP_GAP
+        draw.line([(sep_x, y + 18), (sep_x, y + row_h - 18)],
+                  fill=DIVIDER, width=1)
 
         # Fact text
-        wrapped = textwrap.fill(fact, width=80)
-        lines = wrapped.split("\n")
-        text_y = y + (row_h - len(lines) * 24) // 2
-        for j, line in enumerate(lines):
-            draw.text((96, text_y + j * 24), line, font=font_fact, fill=MUTED_COLOR if j > 0 else TEXT_COLOR)
+        lines   = wrap_text(fact, f_fact, draw, text_max)
+        line_h  = 27
+        total_h = len(lines) * line_h
+        base_y  = y + (row_h - total_h) // 2
 
-    # Footer bar
-    draw.rectangle([(0, IMG_H - 44), (IMG_W, IMG_H)], fill=HEADER_BG)
-    draw.text((40, IMG_H - 29),
-              "Graf Automation & Development Studio · AI Automation · Web Dev · DACH",
-              font=font_footer, fill=BRONZE_COLOR)
+        for j, line in enumerate(lines):
+            font  = f_fact    if j == 0 else f_fact_sm
+            color = IVORY     if j == 0 else IVORY_SOFT
+            draw.text((text_x, base_y + j * line_h), line, font=font, fill=color)
+
+    # ── Footer panel — "GADS" only ─────────────────────────────────────────────
+    draw.rectangle([(0, IMG_H - FOOTER_H), (IMG_W, IMG_H)], fill=PANEL_BG)
+    gads_ftr  = "GADS"
+    gfbbox = draw.textbbox((0, 0), gads_ftr, font=f_footer)
+    gfw    = gfbbox[2] - gfbbox[0]
+    gfh    = gfbbox[3] - gfbbox[1]
+    draw.text(((IMG_W - gfw) // 2, IMG_H - FOOTER_H + (FOOTER_H - gfh) // 2),
+              gads_ftr, font=f_footer, fill=BRONZE)
 
     img.save(out_path, "PNG")
 
 
 def main():
-    tmp = Path(__file__).parent.parent / ".tmp"
+    tmp          = Path(__file__).parent.parent / ".tmp"
     content_path = tmp / "newsletter_content.json"
 
     if not content_path.exists():
-        print("Error: .tmp/newsletter_content.json not found. Run write_newsletter.py first.", file=sys.stderr)
+        print("Error: .tmp/newsletter_content.json not found. Run write_newsletter.py first.",
+              file=sys.stderr)
         sys.exit(1)
 
-    content = json.loads(content_path.read_text())
-    facts = content.get("facts", [])
-    topic = content.get("topic", "Newsletter")
+    content  = json.loads(content_path.read_text())
+    facts    = content.get("facts", [])
+    topic    = content.get("topic", "Newsletter")
     out_path = tmp / "factcard.png"
 
     if not facts:
-        print("Warning: no facts found — generating empty card.", file=sys.stderr)
         facts = ["No facts extracted from research."] * 5
 
     draw_factcard(facts, topic, out_path)

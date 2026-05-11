@@ -8,39 +8,39 @@
   @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500&display=swap');
 </style>
 </head>
-<body style="margin:0;padding:0;background-color:#F5F0EB;font-family:'Inter','Helvetica Neue',Helvetica,Arial,sans-serif;">
+<body style="margin:0;padding:0;background-color:#FAF6EF;font-family:'Inter','Helvetica Neue',Helvetica,Arial,sans-serif;">
 
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#F5F0EB;padding:40px 0 48px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#FAF6EF;padding:40px 0 48px;">
   <tr>
     <td align="center">
       <table role="presentation" width="640" cellpadding="0" cellspacing="0" style="max-width:640px;width:100%;">
 
         <!-- HEADER -->
         <tr>
-          <td style="background-color:#2E1B0E;border-radius:10px 10px 0 0;padding:0;">
+          <td style="background-color:#1A1210;border-radius:10px 10px 0 0;padding:0;">
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
               <tr>
                 <!-- Logo -->
                 <td style="padding:28px 36px 24px;vertical-align:middle;">
                   <img src="data:image/png;base64,{{ logo_b64 }}"
-                       alt="GADS" height="32"
-                       style="display:block;height:32px;width:auto;">
+                       alt="GADS" height="56"
+                       style="display:block;height:56px;width:auto;background:transparent;">
                 </td>
                 <!-- Label -->
                 <td style="padding:28px 36px 24px;vertical-align:middle;text-align:right;">
-                  <span style="font-family:'Space Grotesk','Helvetica Neue',sans-serif;font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:#9B7B50;">Newsletter</span>
+                  <span style="font-family:'Space Grotesk','Helvetica Neue',sans-serif;font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:#8B7056;">Newsletter</span>
                 </td>
               </tr>
               <!-- Accent line -->
               <tr>
                 <td colspan="2" style="padding:0;">
-                  <div style="height:3px;background-color:#3D6B78;"></div>
+                  <div style="height:3px;background-color:#8B7056;"></div>
                 </td>
               </tr>
               <!-- Topic headline -->
               <tr>
                 <td colspan="2" style="padding:32px 36px 36px;">
-                  <h1 style="margin:0;font-family:'Space Grotesk','Helvetica Neue',sans-serif;font-size:28px;font-weight:700;line-height:1.25;color:#F5F0EB;letter-spacing:-0.3px;">{{ topic }}</h1>
+                  <h1 style="margin:0;font-family:'Space Grotesk','Helvetica Neue',sans-serif;font-size:28px;font-weight:700;line-height:1.25;color:#FAF6EF;letter-spacing:-0.3px;">{{ topic }}</h1>
                 </td>
               </tr>
             </table>
@@ -49,38 +49,38 @@
 
         <!-- INTRO -->
         <tr>
-          <td style="background-color:#FFFFFF;padding:36px 36px 28px;border-left:1px solid #E8DDD0;border-right:1px solid #E8DDD0;">
-            <p style="margin:0;font-family:'Inter','Helvetica Neue',sans-serif;font-size:16px;line-height:1.75;color:#2E1B0E;">{{ intro }}</p>
+          <td style="background-color:#FFFFFF;padding:36px 36px 28px;border-left:1px solid #DEC9AF;border-right:1px solid #DEC9AF;">
+            <p style="margin:0;font-family:'Inter','Helvetica Neue',sans-serif;font-size:16px;line-height:1.75;color:#1A1210;">{{ intro }}</p>
           </td>
         </tr>
 
         <!-- ACCENT DIVIDER -->
         <tr>
-          <td style="background-color:#FFFFFF;padding:0 36px;border-left:1px solid #E8DDD0;border-right:1px solid #E8DDD0;">
-            <div style="height:1px;background-color:#E8DDD0;"></div>
+          <td style="background-color:#FFFFFF;padding:0 36px;border-left:1px solid #DEC9AF;border-right:1px solid #DEC9AF;">
+            <div style="height:1px;background-color:#DEC9AF;"></div>
           </td>
         </tr>
 
         <!-- SECTIONS -->
         {% for section in sections %}
         <tr>
-          <td style="background-color:#FFFFFF;padding:{% if loop.first %}28px{% else %}0{% endif %} 36px 28px;border-left:1px solid #E8DDD0;border-right:1px solid #E8DDD0;">
-            <!-- Section heading with slate left-border -->
+          <td style="background-color:#FFFFFF;padding:{% if loop.first %}28px{% else %}0{% endif %} 36px 28px;border-left:1px solid #DEC9AF;border-right:1px solid #DEC9AF;">
+            <!-- Section heading with Bronze left-border -->
             <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
               <tr>
-                <td style="width:3px;background-color:#3D6B78;border-radius:2px;">&nbsp;</td>
+                <td style="width:3px;background-color:#8B7056;border-radius:2px;">&nbsp;</td>
                 <td style="padding:2px 0 2px 14px;">
-                  <h2 style="margin:0;font-family:'Space Grotesk','Helvetica Neue',sans-serif;font-size:18px;font-weight:600;color:#2E1B0E;letter-spacing:-0.2px;">{{ section.heading }}</h2>
+                  <h2 style="margin:0;font-family:'Space Grotesk','Helvetica Neue',sans-serif;font-size:18px;font-weight:600;color:#1A1210;letter-spacing:-0.2px;">{{ section.heading }}</h2>
                 </td>
               </tr>
             </table>
-            <p style="margin:14px 0 0;font-family:'Inter','Helvetica Neue',sans-serif;font-size:15px;line-height:1.8;color:#4A3020;">{{ section.body | replace('\n', '<br>') }}</p>
+            <p style="margin:14px 0 0;font-family:'Inter','Helvetica Neue',sans-serif;font-size:15px;line-height:1.8;color:#3A2820;">{{ section.body | replace('\n', '<br>') }}</p>
           </td>
         </tr>
         {% if not loop.last %}
         <tr>
-          <td style="background-color:#FFFFFF;padding:0 36px;border-left:1px solid #E8DDD0;border-right:1px solid #E8DDD0;">
-            <div style="height:1px;background-color:#F5F0EB;"></div>
+          <td style="background-color:#FFFFFF;padding:0 36px;border-left:1px solid #DEC9AF;border-right:1px solid #DEC9AF;">
+            <div style="height:1px;background-color:#FAF6EF;"></div>
           </td>
         </tr>
         {% endif %}
@@ -88,38 +88,38 @@
 
         <!-- CHART BLOCK -->
         <tr>
-          <td style="background-color:#2E1B0E;padding:32px 36px 28px;">
-            <p style="margin:0 0 6px;font-family:'Space Grotesk','Helvetica Neue',sans-serif;font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:#9B7B50;">By The Numbers</p>
-            <p style="margin:0 0 20px;font-family:'Space Grotesk','Helvetica Neue',sans-serif;font-size:16px;font-weight:600;color:#F5F0EB;">Key Statistics</p>
+          <td style="background-color:#1A1210;padding:32px 36px 28px;">
+            <p style="margin:0 0 6px;font-family:'Space Grotesk','Helvetica Neue',sans-serif;font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:#8B7056;">By The Numbers</p>
+            <p style="margin:0 0 20px;font-family:'Space Grotesk','Helvetica Neue',sans-serif;font-size:16px;font-weight:600;color:#FAF6EF;">Key Statistics</p>
             <img src="data:image/png;base64,{{ chart_b64 }}"
                  alt="Data chart" width="568"
-                 style="display:block;width:100%;max-width:568px;border-radius:6px;border:1px solid #4A3020;">
+                 style="display:block;width:100%;max-width:568px;border-radius:6px;border:1px solid #221816;">
           </td>
         </tr>
 
         <!-- FACT CARD BLOCK -->
         <tr>
-          <td style="background-color:#2E1B0E;padding:0 36px 32px;">
-            <p style="margin:0 0 6px;font-family:'Space Grotesk','Helvetica Neue',sans-serif;font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:#9B7B50;">Quick Facts</p>
-            <p style="margin:0 0 20px;font-family:'Space Grotesk','Helvetica Neue',sans-serif;font-size:16px;font-weight:600;color:#F5F0EB;">What You Need to Know</p>
+          <td style="background-color:#1A1210;padding:0 36px 32px;">
+            <p style="margin:0 0 6px;font-family:'Space Grotesk','Helvetica Neue',sans-serif;font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:#8B7056;">Quick Facts</p>
+            <p style="margin:0 0 20px;font-family:'Space Grotesk','Helvetica Neue',sans-serif;font-size:16px;font-weight:600;color:#FAF6EF;">What You Need to Know</p>
             <img src="data:image/png;base64,{{ factcard_b64 }}"
                  alt="Key facts" width="568"
-                 style="display:block;width:100%;max-width:568px;border-radius:6px;border:1px solid #4A3020;">
+                 style="display:block;width:100%;max-width:568px;border-radius:6px;border:1px solid #221816;">
           </td>
         </tr>
 
         <!-- KEY TAKEAWAYS -->
         <tr>
-          <td style="background-color:#FFFFFF;padding:32px 36px 36px;border-left:1px solid #E8DDD0;border-right:1px solid #E8DDD0;border-radius:0;">
-            <p style="margin:0 0 6px;font-family:'Space Grotesk','Helvetica Neue',sans-serif;font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:#9B7B50;">Summary</p>
-            <h2 style="margin:0 0 20px;font-family:'Space Grotesk','Helvetica Neue',sans-serif;font-size:18px;font-weight:600;color:#2E1B0E;">Key Takeaways</h2>
+          <td style="background-color:#FFFFFF;padding:32px 36px 36px;border-left:1px solid #DEC9AF;border-right:1px solid #DEC9AF;border-radius:0;">
+            <p style="margin:0 0 6px;font-family:'Space Grotesk','Helvetica Neue',sans-serif;font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:#8B7056;">Summary</p>
+            <h2 style="margin:0 0 20px;font-family:'Space Grotesk','Helvetica Neue',sans-serif;font-size:18px;font-weight:600;color:#1A1210;">Key Takeaways</h2>
             <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
               {% for takeaway in key_takeaways %}
               <tr>
                 <td style="padding:7px 0;vertical-align:top;width:20px;">
-                  <div style="width:6px;height:6px;background:#3D6B78;border-radius:50%;margin-top:7px;"></div>
+                  <div style="width:6px;height:6px;background:#8B7056;border-radius:50%;margin-top:7px;"></div>
                 </td>
-                <td style="padding:7px 0;font-family:'Inter','Helvetica Neue',sans-serif;font-size:15px;line-height:1.6;color:#2E1B0E;">{{ takeaway }}</td>
+                <td style="padding:7px 0;font-family:'Inter','Helvetica Neue',sans-serif;font-size:15px;line-height:1.6;color:#1A1210;">{{ takeaway }}</td>
               </tr>
               {% endfor %}
             </table>
@@ -128,31 +128,13 @@
 
         <!-- FOOTER -->
         <tr>
-          <td style="background-color:#2E1B0E;border-radius:0 0 10px 10px;padding:28px 36px;">
+          <td style="background-color:#1A1210;border-radius:0 0 10px 10px;padding:32px 36px;">
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
               <tr>
-                <td>
+                <td align="center">
                   <img src="data:image/png;base64,{{ logo_b64 }}"
-                       alt="GADS" height="20"
-                       style="display:block;height:20px;width:auto;opacity:0.7;">
-                </td>
-                <td style="text-align:right;">
-                  <p style="margin:0;font-family:'Inter',sans-serif;font-size:11px;color:#9B7B50;line-height:1.6;">
-                    Graf Automation &amp; Development Studio<br>
-                    KMU · Web Dev · AI Automation · DACH
-                  </p>
-                </td>
-              </tr>
-              <tr>
-                <td colspan="2" style="padding-top:16px;">
-                  <div style="height:1px;background-color:#4A3020;"></div>
-                </td>
-              </tr>
-              <tr>
-                <td colspan="2" style="padding-top:12px;">
-                  <p style="margin:0;font-family:'Inter',sans-serif;font-size:10px;color:#4A3020;text-align:center;">
-                    Wir bauen digitale Systeme, die skalieren. · Newsletter generiert via AI Automation
-                  </p>
+                       alt="GADS" height="64"
+                       style="display:block;margin:0 auto;height:64px;width:auto;background:transparent;">
                 </td>
               </tr>
             </table>

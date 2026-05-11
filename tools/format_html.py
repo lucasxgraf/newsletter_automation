@@ -16,21 +16,13 @@ def encode_image(path: Path) -> str:
 
 
 def prepare_logo_b64() -> str:
-    """Load the GADS logo, resize to email width, and return as base64."""
-    logo_path = BASE / "brand_assets" / "logo_GADS.png"
+    """Return GADS bronze wordmark (transparent background) for dark email backgrounds."""
+    logo_path = BASE / "brand_assets" / "Hintergrund von „logo_bronze_GADS“ entfernt.png"
+    if not logo_path.exists():
+        logo_path = BASE / "brand_assets" / "logo_bronze_GADS.png"
     if not logo_path.exists():
         return ""
-    from PIL import Image
-    import io
-    img = Image.open(logo_path).convert("RGBA")
-    # Resize to a reasonable email display height (keep aspect ratio)
-    target_h = 64
-    ratio = target_h / img.height
-    target_w = int(img.width * ratio)
-    img = img.resize((target_w, target_h), Image.LANCZOS)
-    buf = io.BytesIO()
-    img.save(buf, format="PNG")
-    return base64.b64encode(buf.getvalue()).decode("utf-8")
+    return base64.b64encode(logo_path.read_bytes()).decode("utf-8")
 
 
 def main():
